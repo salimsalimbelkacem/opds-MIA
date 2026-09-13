@@ -155,9 +155,12 @@ if __name__ == "__main__":
     print(f"Found {len(links)} format links")
     
     # Generate catalog
-    # For local testing, base_url can be empty. For deployment, set your domain:
-    # base_url = "https://yourusername.github.io/marxists-opds"
-    generate_catalog(links, output_dir="./opds", base_url="")
+    # base_url can be set via BASE_URL env var for deployment (e.g. GitHub Pages)
+    # e.g. BASE_URL=https://yourusername.github.io/marxists-opds
+    base_url = os.environ.get("BASE_URL", "")
+    if base_url:
+        print(f"Using base_url: {base_url}")
+    generate_catalog(links, output_dir="./opds", base_url=base_url)
     
     print(f"\nDone! Upload the './opds' folder to your static host.")
     print("In Librera: Network → Add Catalog → URL: https://yourdomain.com/opds/index.xml")
