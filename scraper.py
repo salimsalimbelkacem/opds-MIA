@@ -34,3 +34,26 @@ def get_all_ebooks_links() -> list[str]:
                     document_links.append(urljoin(url, str(link["href"])))
 
     return document_links
+
+def get_processed_ebooks_links():
+    links_dics = []
+
+    # get_all_ebooks_links()
+    for link in get_all_ebooks_links():
+        dic = {}
+        dic["link"] = link
+        dic["format"] = link.rsplit('.',1)[-1]
+
+        dic['title'] = link.rsplit('/',1)[-1]  \
+                        .split(".epub")[0]     \
+                        .split(".pdf")[0]      \
+                        .replace("-"," ")      \
+                        .replace("_"," ")      \
+                        .replace("%20"," ")
+        dic["author"] = link.rsplit('archive',1)[-1] \
+                            .rsplit('ebooks',1)[-1]  \
+                            .rsplit('/')[1]
+
+        links_dics.append(dic)
+
+    return links_dics
