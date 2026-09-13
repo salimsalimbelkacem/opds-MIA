@@ -40,13 +40,19 @@ def generate_opds_feed(books: list[dict], feed_title: str, feed_id: str, output_
             }
         works[title]["formats"].append(book)
     
+    # Build self href: absolute when base_url is set, relative otherwise
+    basename = quote(os.path.basename(output_path))
+    if base_url:
+        self_href = f"{xml_escape(base_url.rstrip('/'))}/{basename}"
+    else:
+        self_href = basename
     # Build XML
     xml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="{ATOM_NS}" xmlns:opds="{OPDS_NS}">
   <title>{xml_escape(feed_title)}</title>
   <id>urn:marxists:{xml_escape(feed_id)}</id>
   <updated>{datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}</updated>
-  <link rel="self" type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="{xml_escape(base_url)}/{quote(os.path.basename(output_path))}"/>
+  <link rel="self" type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="{self_href}"/>
 '''
     
     for title, work in works.items():
@@ -106,23 +112,31 @@ def generate_catalog(processed_links: list[dict], output_dir: str = "./opds", ba
         authors[author].append(book)
     
     # Generate root index
+    if base_url:
+        root_self_href = f"{xml_escape(base_url.rstrip('/'))}/index.xml"
+    else:
+        root_self_href = "index.xml"
     xml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="{ATOM_NS}" xmlns:opds="{OPDS_NS}">
   <title>Marxists.org eBook Catalog</title>
   <id>urn:marxists:catalog:root</id>
   <updated>{datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}</updated>
-  <link rel="self" type="application/atom+xml;profile=opds-catalog;kind=navigation" href="{xml_escape(base_url)}/index.xml"/>
+  <link rel="self" type="application/atom+xml;profile=opds-catalog;kind=navigation" href="{root_self_href}"/>
 '''
     
     for author in sorted(authors.keys()):
         author_slug = slugify(author)
         count = len(authors[author])
+        if base_url:
+            author_href = f"{xml_escape(base_url.rstrip('/'))}/{quote(author_slug)}.xml"
+        else:
+            author_href = f"{quote(author_slug)}.xml"
         xml += f'''
   <entry>
     <title>{xml_escape(author.title())}</title>
     <id>urn:marxists:authors:{xml_escape(author_slug)}</id>
     <updated>{datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}</updated>
-    <link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="{quote(author_slug)}.xml"/>
+    <link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="{author_href}"/>
     <content type="text">{count} works</content>
   </entry>
 '''
